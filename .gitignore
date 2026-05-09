@@ -1,0 +1,34 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+*.jar
+*.war
+*.nar
+*.ear
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+
+# Spring Boot
+application-*.yml
+application-*.yaml
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.local
+
+# Docker
+.dockerignore

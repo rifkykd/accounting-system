@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: accounting_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - accounting_network
+
+  app:
+    build: .
+    container_name: accounting_app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://admin:password@mongodb:27017/accounting_erp?authSource=admin
+    depends_on:
+      - mongodb
+    networks:
+      - accounting_network
+
+volumes:
+  mongo_data:
+
+networks:
+  accounting_network:
+    driver: bridge
