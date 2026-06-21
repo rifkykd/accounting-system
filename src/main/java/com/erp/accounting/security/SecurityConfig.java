@@ -20,17 +20,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf().disable()
-            .and()
-            .cors()
-            .and()
-            .authorizeHttpRequests()
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.disable())
+            .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/signup").permitAll()
                 .requestMatchers("/api/auth/create-test-user").permitAll()
                 .anyRequest().authenticated()
-            .and()
-            .httpBasic();
+            )
+            .httpBasic(basic -> {});
         
         return http.build();
     }
