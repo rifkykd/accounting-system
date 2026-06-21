@@ -10,7 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -26,11 +29,55 @@ public class AuthController {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody LoginRequest signupRequest) {
+        // Check if user already exists
+        Optional<User> existingUser = userRepository.findByUsername(signupRequest.getUsername());
+        if (existingUser.isPresent()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new LoginResponse(null, null, null, null, "User already exists"));
+        }
+
+        // Create new user
+        User newUser = new User();
+        newUser.setUsername(signupRequest.getUsername());
+        newUser.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+        newUser.setTenantId(signupRequest.getTenantId() != null ? signupRequest.getTenantId() : "default");
+        newUser.setEmail(signupRequest.getUsername() + "@example.com");
+        newUser.setFirstName("User");
+        newUser.setLastName("Account");
+        newUser.setActive(true);
+        Set<String> roles = new HashSet<>();
+        roles.add("USER");
+        newUser.setRoles(roles);
+        newUser.setCreatedAt(LocalDateTime.now());
+        newUser.setUpdatedAt(LocalDateTime.now());
+
+        // Save user to MongoDB
+        User savedUser = userRepository.save(newUser);
+
+        // Generate token
+        String token = jwtTokenProvider.generateToken(
+                savedUser.getId(),
+                savedUser.getUsername(),
+                savedUser.getTenantId(),
+                savedUser.getRoles()
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(LoginResponse.builder()
+                .token(token)
+                .username(savedUser.getUsername())
+                .email(savedUser.getEmail())
+                .tenantId(savedUser.getTenantId())
+                .message("Account created successfully")
+                .build());
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         Optional<User> userOptional = userRepository.findByUsernameAndTenantId(
                 loginRequest.getUsername(),
-                loginRequest.getTenantId()
+                loginRequest.getTenantId() != null ? loginRequest.getTenantId() : "default"
         );
 
         if (userOptional.isEmpty()) {
