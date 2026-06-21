@@ -21,13 +21,15 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf().disable()
-            .cors().and()
-            .authorizeHttpRequests(authz -> authz
+            .and()
+            .cors()
+            .and()
+            .authorizeHttpRequests()
                 .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/signup").permitAll()
                 .requestMatchers("/api/auth/create-test-user").permitAll()
                 .anyRequest().authenticated()
-            )
+            .and()
             .httpBasic();
         
         return http.build();
